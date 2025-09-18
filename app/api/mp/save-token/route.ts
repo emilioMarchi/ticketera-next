@@ -1,28 +1,30 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+// app/api/mp/save-token/route.ts
+import { NextRequest, NextResponse } from "next/server";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).end();
-
-  const { code, code_verifier } = req.body;
-
+export async function POST(req: NextRequest) {
   try {
-    const params = new URLSearchParams({
+    const { code, code_verifier } = await req.json();
+
+    const body = new URLSearchParams({
       grant_type: "authorization_code",
-      client_id: process.env.NEXT_PUBLIC_MP_CLIENT_ID!,
+      client_id: process.env.NEXT_PUBLIC_MP_CLIENT_ID!, // tu client_id
       code,
       redirect_uri: process.env.NEXT_PUBLIC_MP_REDIRECT_URI!,
       code_verifier,
     });
 
-    const mpRes = await fetch("https://api.mercadopago.com/oauth/token", {
+    const res = await fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
+      body: body.toString(),
     });
 
-    const data = await mpRes.json();
-    res.status(200).json(data);
+    const data = await res.json();
+
+    // Guardar token en Firebase o DB si querés
+    return NextResponse.json(data);
   } catch (err) {
-    res.status(500).json({ error: "Error al obtener token", details: err });
+    console.error(err);
+    return NextResponse.json({ error: "Algo falló" }, { status: 500 });
   }
 }
