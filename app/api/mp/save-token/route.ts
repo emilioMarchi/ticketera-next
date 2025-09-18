@@ -3,14 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, code_verifier } = await req.json();
+    const { code } = await req.json();
 
     const body = new URLSearchParams({
       grant_type: "authorization_code",
-      client_id: process.env.NEXT_PUBLIC_MP_CLIENT_ID!, // tu client_id
+      client_id: process.env.MP_CLIENT_ID!,        // tu client_id
+      client_secret: process.env.MP_CLIENT_SECRET!, // ahora sí, tu secreto de producción
       code,
-      redirect_uri: process.env.NEXT_PUBLIC_MP_REDIRECT_URI!,
-      code_verifier,
+      redirect_uri: process.env.MP_REDIRECT_URI!,
     });
 
     const res = await fetch("https://api.mercadopago.com/oauth/token", {
@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
 
     const data = await res.json();
 
-    // Guardar token en Firebase o DB si querés
     return NextResponse.json(data);
   } catch (err) {
     console.error(err);
