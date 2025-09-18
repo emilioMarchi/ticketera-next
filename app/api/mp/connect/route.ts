@@ -2,10 +2,19 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const clientId = process.env.NEXT_PUBLIC_MP_CLIENT_ID;
-  const redirectUri = process.env.NEXT_PUBLIC_MP_REDIRECT_URI;
+  try {
+    const params = new URLSearchParams({
+      client_id: process.env.NEXT_PUBLIC_MP_CLIENT_ID!,
+      response_type: "code",
+      redirect_uri: process.env.NEXT_PUBLIC_MP_REDIRECT_URI!,
 
-  const authUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${clientId}&response_type=code&platform_id=mp&redirect_uri=${redirectUri}`;
+    });
 
-  return NextResponse.json({ url: authUrl });
+    const url = `https://auth.mercadopago.com.ar/authorization?${params.toString()}`;
+
+    return NextResponse.json({ url });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Algo falló" }, { status: 500 });
+  }
 }
