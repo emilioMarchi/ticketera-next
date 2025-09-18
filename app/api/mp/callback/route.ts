@@ -15,17 +15,20 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Intercambiar code + codeVerifier por access_token
+    // Preparar body como x-www-form-urlencoded
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: process.env.MP_CLIENT_ID!,
+      client_secret: process.env.MP_CLIENT_SECRET!, // agregado
+      code,
+      redirect_uri: process.env.MP_REDIRECT_URI!,
+      code_verifier: codeVerifier,
+    });
+
     const tokenResponse = await fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        grant_type: "authorization_code",
-        client_id: process.env.MP_CLIENT_ID,
-        code,
-        redirect_uri: process.env.MP_REDIRECT_URI,
-        code_verifier: codeVerifier,
-      }),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
     });
 
     const tokenData = await tokenResponse.json();
