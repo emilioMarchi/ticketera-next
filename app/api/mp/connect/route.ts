@@ -1,34 +1,39 @@
-import { NextResponse } from "next/server";
-import crypto from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
-  const codeVerifier = crypto.randomBytes(64).toString("hex");
-  const codeChallenge = crypto
-    .createHash("sha256")
-    .update(codeVerifier)
-    .digest("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+export async function POST(req: NextRequest) {
+  try {
+    const { title, quantity, unit_price } = await req.json();
 
-  const res = NextResponse.redirect(
-    `https://auth.mercadopago.com/authorization?${new URLSearchParams({
-      client_id: process.env.MP_CLIENT_ID!,
-      response_type: "code",
-      platform_id: "mp",
-      redirect_uri: process.env.MP_REDIRECT_URI!,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-    }).toString()}`
-  );
+    const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        items: [
+          {
+            title,
+            quantity,
+            unit_price,
+          },
+        ],
+        back_urls: {
+          success: process.env.MP_REDIRECT_URI,
+          failure: process.env.MP_REDIRECT_URI,
+          pending: process.env.MP_REDIRECT_URI,
+        },
+        auto_return: "approved",
+      }),
+    });
 
-  // Guardamos code_verifier en cookie para front-end
-  res.cookies.set("mp_code_verifier", codeVerifier, {
-    httpOnly: false, // debe ser legible desde front-end
-    sameSite: "lax",
-    path: "/",
-    maxAge: 300,
-  });
-
-  return res;
+    const data = await response.json();
+    return NextResponse.json(data); 
+  } catch (error) {
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
 }

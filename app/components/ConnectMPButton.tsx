@@ -1,29 +1,35 @@
 "use client";
-
 import { useState } from "react";
 
-export default function ConnectMPButton() {
+export default function CheckoutButton() {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
-  const handleConnect = () => {
+  const handleCheckout = async () => {
     setLoading(true);
-    setMessage("");
+    const res = await fetch("/api/mp/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Entrada Concierto",
+        quantity: 1,
+        unit_price: 5000,
+      }),
+    });
 
-    // Redirige a tu API que inicia PKCE y autorización de MP
-    window.location.href = "/api/mp/connect";
+    const data = await res.json();
+    setLoading(false);
+
+    if (data.init_point) {
+      window.location.href = data.init_point; // Redirige al checkout pro
+    } else {
+      alert("Error al crear el pago");
+      console.error(data);
+    }
   };
 
   return (
-    <div>
-      <button
-        onClick={handleConnect}
-        disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-      >
-        {loading ? "Redirigiendo..." : "Conectar con Mercado Pago"}
-      </button>
-      {message && <p className="mt-2 text-green-600">{message}</p>}
-    </div>
+    <button onClick={handleCheckout} disabled={loading}>
+      {loading ? "Redirigiendo..." : "Pagar con Mercado Pago"}
+    </button>
   );
 }
