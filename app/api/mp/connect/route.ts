@@ -1,8 +1,7 @@
-// /pages/api/mp/connect.ts
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET() {
   // Generar code_verifier y code_challenge
   const codeVerifier = crypto.randomBytes(64).toString("hex");
   const codeChallenge = crypto
@@ -14,23 +13,23 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     .replace(/=+$/, "");
 
   // Guardar code_verifier en cookie
-  res.setHeader(
-    "Set-Cookie",
-    `mp_code_verifier=${codeVerifier}; HttpOnly; Path=/; Max-Age=300; SameSite=Lax`
+  const res = NextResponse.redirect(
+    `https://auth.mercadopago.com/authorization?${new URLSearchParams({
+      client_id: process.env.MP_CLIENT_ID!,
+      response_type: "code",
+      platform_id: "mp",
+      redirect_uri: process.env.MP_REDIRECT_URI!,
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+    }).toString()}`
   );
 
-  // Construir URL de autorización de MP
-  const params = new URLSearchParams({
-    client_id: process.env.MP_CLIENT_ID!,
-    response_type: "code",
-    platform_id: "mp",
-    redirect_uri: process.env.MP_REDIRECT_URI!,
-    code_challenge: codeChallenge,
-    code_challenge_method: "S256",
+  res.cookies.set("mp_code_verifier", codeVerifier, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 300,
   });
 
-  const authUrl = `https://auth.mercadopago.com/authorization?${params.toString()}`;
-
-  // Redirigir al usuario
-  res.redirect(authUrl);
+  return res;
 }

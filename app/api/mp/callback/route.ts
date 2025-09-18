@@ -1,14 +1,17 @@
-// /pages/api/mp/callback.ts
-import type { NextApiRequest, NextApiResponse } from "next";
-import { db } from "@/app/lib/firebase"; // tu módulo Firebase
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/app/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
-  const codeVerifier = req.cookies.mp_code_verifier;
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const code = searchParams.get("code");
+  const codeVerifier = req.cookies.get("mp_code_verifier")?.value;
 
   if (!code || !codeVerifier) {
-    return res.status(400).send("Falta code o codeVerifier");
+    return NextResponse.json(
+      { error: "Falta code o codeVerifier" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -29,11 +32,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!tokenResponse.ok) {
       console.error("Error al obtener token MP:", tokenData);
-      return res.status(500).send("Error al obtener token de Mercado Pago");
+      return NextResponse.json(
+        { error: "Error al obtener token de Mercado Pago" },
+        { status: 500 }
+      );
     }
 
     // ⚠️ Reemplazar con el ID real de la institución del usuario logueado
-    const institutionId = "123"; // ejemplo, luego dinámico
+    const institutionId = "123";
 
     await setDoc(
       doc(db, "institutions", institutionId),
@@ -46,9 +52,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       { merge: true }
     );
 
-    res.send("✅ Cuenta de Mercado Pago vinculada correctamente");
+    return NextResponse.json({ success: true, message: "Cuenta de MP vinculada correctamente" });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error interno al vincular cuenta de MP");
+    return NextResponse.json(
+      { error: "Error interno al vincular cuenta de MP" },
+      { status: 500 }
+    );
   }
 }
