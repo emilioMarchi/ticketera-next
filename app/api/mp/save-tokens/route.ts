@@ -5,9 +5,7 @@ import { doc, setDoc } from "firebase/firestore";
 export async function POST(req: NextRequest) {
   try {
     const tokenData = await req.json();
-
-    // ⚠️ Reemplazar con el ID real de la institución del usuario
-    const institutionId = "123";    
+    const institutionId = "123";
 
     await setDoc(
       doc(db, "institutions", institutionId),

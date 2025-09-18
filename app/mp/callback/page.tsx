@@ -12,7 +12,6 @@ export default function MPCallback() {
 
     if (!code || !codeVerifier) return;
 
-    // Intercambio PKCE desde front-end
     fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -28,7 +27,7 @@ export default function MPCallback() {
       .then(data => {
         console.log("Token MP:", data);
 
-        // ⚡ Enviar a tu server para guardar en Firebase
+        // Guardar token en Firebase
         fetch("/api/mp/save-token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

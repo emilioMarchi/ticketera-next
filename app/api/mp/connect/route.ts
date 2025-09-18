@@ -22,8 +22,9 @@ export async function GET() {
     }).toString()}`
   );
 
+  // Guardamos code_verifier en cookie para front-end
   res.cookies.set("mp_code_verifier", codeVerifier, {
-    httpOnly: true,
+    httpOnly: false, // debe ser legible desde front-end
     sameSite: "lax",
     path: "/",
     maxAge: 300,
