@@ -15,11 +15,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Preparar body como x-www-form-urlencoded
+    // Preparar body para PKCE (sin client_secret)
     const body = new URLSearchParams({
       grant_type: "authorization_code",
       client_id: process.env.MP_CLIENT_ID!,
-      client_secret: process.env.MP_CLIENT_SECRET!, // agregado
       code,
       redirect_uri: process.env.MP_REDIRECT_URI!,
       code_verifier: codeVerifier,
@@ -36,7 +35,7 @@ export async function GET(req: NextRequest) {
     if (!tokenResponse.ok) {
       console.error("Error al obtener token MP:", tokenData);
       return NextResponse.json(
-        { error: "Error al obtener token de Mercado Pago" },
+        { error: "Error al obtener token de Mercado Pago", details: tokenData },
         { status: 500 }
       );
     }
@@ -57,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "Cuenta de MP vinculada correctamente" });
   } catch (error) {
-    console.error(error);
+    console.error("Error interno al vincular cuenta de MP:", error);
     return NextResponse.json(
       { error: "Error interno al vincular cuenta de MP" },
       { status: 500 }
