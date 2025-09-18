@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 
 export async function GET() {
-  // Generar code_verifier y code_challenge
   const codeVerifier = crypto.randomBytes(64).toString("hex");
   const codeChallenge = crypto
     .createHash("sha256")
@@ -12,7 +11,6 @@ export async function GET() {
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 
-  // Guardar code_verifier en cookie
   const res = NextResponse.redirect(
     `https://auth.mercadopago.com/authorization?${new URLSearchParams({
       client_id: process.env.MP_CLIENT_ID!,
