@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "acp": "git add . && git commit -m",
     "lint": "eslint"
   },
   "dependencies": {
