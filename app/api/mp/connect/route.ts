@@ -1,39 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+// app/api/mp/connect/route.ts
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  try {
-    const { title, quantity, unit_price } = await req.json();
+export async function GET() {
+  const clientId = process.env.NEXT_PUBLIC_MP_CLIENT_ID;
+  const redirectUri = process.env.NEXT_PUBLIC_MP_REDIRECT_URI;
 
-    const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        items: [
-          {
-            title,
-            quantity,
-            unit_price,
-          },
-        ],
-        back_urls: {
-          success: process.env.MP_REDIRECT_URI,
-          failure: process.env.MP_REDIRECT_URI,
-          pending: process.env.MP_REDIRECT_URI,
-        },
-        auto_return: "approved",
-      }),
-    });
+  const authUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${clientId}&response_type=code&platform_id=mp&redirect_uri=${redirectUri}`;
 
-    const data = await response.json();
-    return NextResponse.json(data); 
-  } catch (error) {
-    let errorMessage = "An unknown error occurred.";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
+  return NextResponse.json({ url: authUrl });
 }

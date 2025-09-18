@@ -5,24 +5,21 @@ export default function MPCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    const codeVerifier = document.cookie
-      .split("; ")
-      .find(row => row.startsWith("mp_code_verifier="))
-      ?.split("=")[1];
 
-    if (!code || !codeVerifier) return;
+    if (!code) return;
 
     fetch("/api/mp/save-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, code_verifier: codeVerifier }),
+      body: JSON.stringify({ code }),
     })
       .then(res => res.json())
       .then(data => {
         console.log("Token MP:", data);
+        // Acá podés redirigir al usuario a tu dashboard
       })
       .catch(console.error);
   }, []);
 
-  return <div>Autenticando con Mercado Pago...</div>;
+  return <div>Conectando tu cuenta de Mercado Pago...</div>;
 }
