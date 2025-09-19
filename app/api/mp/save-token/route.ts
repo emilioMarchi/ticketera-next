@@ -27,4 +27,4 @@ export async function POST(req: NextRequest) {
     console.error(err);
     return NextResponse.json({ error: "Algo falló" }, { status: 500 });
   }
-}
+} 
